@@ -1,0 +1,61 @@
+--1	How many Records in the people table
+
+SELECT COUNT(PersonID)
+FROM dbo.Persons
+
+SELECT COUNT(PersonID)
+FROM dbo.PersonsinWWI
+
+SELECT COUNT(PersonID)		--Count = 1111
+FROM Application.People
+
+--2	How many Delivery Methods Are there
+
+SELECT COUNT(DeliveryMethodID)		--Count = 10
+FROM Application.DeliveryMethods
+
+--3	How many cities are listed for each state 
+
+SELECT
+    COUNT(CityID) AS NumberOfCities
+  , StateProvinceName
+FROM Application.Cities
+    INNER JOIN Application.StateProvinces
+        ON Cities.StateProvinceID = StateProvinces.StateProvinceID
+GROUP BY StateProvinceName
+
+--4	How many cities are listed for each country 
+--NEEDS MORE WORK
+
+SELECT
+    COUNT(CityID) AS NumberOfCities
+  , CountryName
+FROM Application.Countries
+    INNER JOIN Application.Cities
+        ON Cities.StateProvinceID = Countries.CountryID
+GROUP BY CountryName
+
+--5	What is the average amount of Cities per state, round to nearest whole number
+
+SELECT
+SP.StateProvinceName
+, COUNT('X') AS Count
+FROM Application.StateProvinces AS SP
+INNER JOIN Application.Cities AS CI
+        ON CI.StateProvinceID = SP.StateProvinceID
+GROUP BY SP.StateProvinceName
+
+
+SELECT
+   SUM(CONVERT(DECIMAL(18,2),S.Count)) AS [Sum]
+   , CONVERT(DECIMAL(6,1),AVG(CONVERT(DECIMAL(6,2),S.Count))) AS [Avg]
+FROM
+(
+    SELECT
+        SP.StateProvinceName
+      , COUNT('X') AS Count
+    FROM Application.StateProvinces AS SP
+        INNER JOIN Application.Cities AS CI
+            ON CI.StateProvinceID = SP.StateProvinceID
+    GROUP BY SP.StateProvinceName
+) AS S
