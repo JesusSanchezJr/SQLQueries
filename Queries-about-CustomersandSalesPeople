@@ -1,0 +1,107 @@
+--9	Who is the most profitable customer in terms of sales -- Wingtip Toys (Head Office)
+--NEEDS to show Highest Trx Amount overall not by day ***DONE****
+SELECT
+    CustomerName
+  , SUM(TransactionAmount) AS TransactionAmount
+FROM Sales.CustomerTransactions
+    INNER JOIN Sales.Customers
+        ON Sales.CustomerTransactions.CustomerID = Sales.Customers.CustomerID
+		GROUP BY CustomerName
+ORDER BY TransactionAmount DESC
+
+--10	Sales by Month
+--Needs work - Take TrxDate break into Year/Month and sum up TrxAmount ***DONE***
+SELECT  
+		CustomerName,
+	Year(TransactionDate) AS [Year],
+	Month(TransactionDate) AS [Month],
+	SUM(TransactionAmount) AS TrxAmount
+FROM Sales.CustomerTransactions
+	INNER JOIN	
+		Sales.Customers
+			ON Sales.CustomerTransactions.CustomerID = Sales.Customers.CustomerID
+	GROUP BY TransactionDate, CustomerName
+ORDER BY Year, Month
+--11	Most sold item -- "The Gu" red shirt XML tag t-shirt (White) M
+
+SELECT
+    COUNT(StockItemTransactionID) AS [Count]
+  , StockItemName
+FROM Warehouse.StockItemTransactions
+    INNER JOIN Warehouse.StockItems
+        ON Warehouse.StockItemTransactions.StockItemID = Warehouse.StockItems.StockItemID
+GROUP BY StockItemName
+ORDER BY Count DESC
+
+
+
+--12	Least sold item -- Chocolate echidnas 250g
+
+SELECT COUNT(StockItemTransactionID) AS [Count], StockItemName
+FROM Warehouse.StockItemTransactions INNER JOIN 
+		Warehouse.StockItems ON 
+			Warehouse.StockItemTransactions.StockItemID = Warehouse.StockItems.StockItemID
+GROUP BY StockItemName
+ORDER BY Count 
+
+--13	Who are our biggest suppliers -- Litware, Inc. = 1160
+					 Fabrikam, Inc. = 1232
+
+SELECT SupplierName, COUNT(SupplierTransactionID) AS [Count]
+FROM Purchasing.Suppliers AS PS INNER JOIN Purchasing.SupplierTransactions AS PST
+		ON PS.SupplierID = PST.SupplierID
+GROUP BY SupplierName
+ORDER BY Count DESC
+
+
+/**********************************
+14	Top 10 Customers and include what percentage of sales they account for (for a given time period). 
+**********************************/
+
+--Sales by Customer for a Period
+SELECT --TOP(10)
+    CustomerName
+  , SUM(TransactionAmount) AS [TotalTrxAmt]
+FROM Sales.CustomerTransactions
+    INNER JOIN Sales.Customers
+        ON Sales.CustomerTransactions.CustomerID = Sales.Customers.CustomerID
+WHERE YEAR(TransactionDate) = 2016
+--WHERE TransactionDate BETWEEN '1/1/2016' AND '7/1/2016'
+GROUP BY 
+	CustomerName
+ORDER BY [TotalTrxAmt] DESC
+
+
+/**********************************
+Top Sales By Percent
+**********************************/
+DECLARE @Total INT = (
+--Total Sales for Period
+
+	SELECT --TOP(10)
+	 SUM(TransactionAmount) AS [TotalTrxAmt]
+	FROM Sales.CustomerTransactions
+		INNER JOIN Sales.Customers
+			ON Sales.CustomerTransactions.CustomerID = Sales.Customers.CustomerID
+	WHERE YEAR(TransactionDate) = 2016
+	AND TransactionAmount > 0
+	--WHERE TransactionDate BETWEEN '1/1/2016' AND '7/1/2016'
+	--ORDER BY [TotalTrxAmt] DESC
+)
+
+
+SELECT TOP(10)
+    CustomerName
+  , SUM(TransactionAmount) AS [TotalTrxAmt]
+  , CONVERT(DECIMAL(18,2),(SUM(TransactionAmount)/@Total)*100) AS [TotalTrxAmt%]
+FROM Sales.CustomerTransactions
+    INNER JOIN Sales.Customers
+        ON Sales.CustomerTransactions.CustomerID = Sales.Customers.CustomerID
+	
+WHERE YEAR(TransactionDate) = 2016
+AND TransactionAmount > 0
+--WHERE TransactionDate BETWEEN '1/1/2016' AND '7/1/2016'
+GROUP BY 
+	CustomerName
+ORDER BY [TotalTrxAmt] DESC
+
