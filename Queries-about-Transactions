@@ -1,0 +1,62 @@
+--6	How many transactions have been paid in Cash 
+
+SELECT
+    'SupplierTransactions' AS [Type]
+  , COUNT(1) AS [Count]
+FROM Purchasing.SupplierTransactions AS ST
+    INNER JOIN Application.PaymentMethods AS PM
+        ON PM.PaymentMethodID = ST.PaymentMethodID
+WHERE PM.PaymentMethodName = 'Cash'
+UNION
+SELECT
+    'CustomerTransactions' AS [Type]
+  , COUNT(1) AS [Count]
+FROM Sales.CustomerTransactions AS CT
+    INNER JOIN Application.PaymentMethods AS PM
+        ON PM.PaymentMethodID = CT.PaymentMethodID
+WHERE PM.PaymentMethodName = 'Cash'
+
+
+--7	Count how many transactions have been made for each payment method 
+
+SELECT
+    'SupplierTransactions' AS [Type]
+	, PaymentMethodName
+  , COUNT(1) AS [Count]
+FROM Purchasing.SupplierTransactions AS ST
+    INNER JOIN Application.PaymentMethods AS PM
+        ON PM.PaymentMethodID = ST.PaymentMethodID
+		GROUP BY PaymentMethodName
+UNION
+		SELECT
+    'CustomerTransactions' AS [Type]
+	, PaymentMethodName
+  , COUNT(1) AS [Count]
+FROM Sales.CustomerTransactions AS CT
+    INNER JOIN Application.PaymentMethods AS PM
+        ON PM.PaymentMethodID = CT.PaymentMethodID
+GROUP BY PaymentMethodName
+
+--8	Count how many transactions have been made for each payment method by each year
+
+SELECT
+    'SupplierTransactions' AS [Type]
+	, PaymentMethodName
+	, YEAR(TransactionDate) AS [Year]
+  , COUNT(1) AS [Count]
+FROM Purchasing.SupplierTransactions AS ST
+    INNER JOIN Application.PaymentMethods AS PM
+        ON PM.PaymentMethodID = ST.PaymentMethodID
+		GROUP BY YEAR(TransactionDate), PaymentMethodName
+
+		UNION
+
+SELECT
+    'CustomerTransactions' AS [Type]
+	, PaymentMethodName
+	, YEAR(TransactionDate) 
+  , COUNT(1) AS [Count]
+FROM Sales.CustomerTransactions AS CT
+    INNER JOIN Application.PaymentMethods AS PM
+        ON PM.PaymentMethodID = CT.PaymentMethodID
+		GROUP BY YEAR(TransactionDate), PaymentMethodName
