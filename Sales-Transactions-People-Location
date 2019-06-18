@@ -1,0 +1,112 @@
+--15	Find the City names that end in "S"
+
+SELECT CityName
+	FROM Application.Cities
+	WHERE CityName LIKE '%s'
+
+
+--16	Find customers that is in Texas
+
+SELECT CustomerName
+	FROM Sales.Customers
+		WHERE CustomerName LIKE '%TX)'
+		--SELECT CustomerName
+	--FROM Sales.Customers
+	--	WHERE CustomerName = '_ Smith'
+
+--17	Customer Count By City
+--Needs to roll up Customer Counts by City 
+SELECT
+    CustomerName AS Customer_Name
+  , CityName AS City_Name
+FROM Application.Cities
+    INNER JOIN Sales.Customers
+        ON Application.Cities.CityID = Sales.Customers.PostalCityID
+GROUP BY CustomerName, CityName
+ORDER BY City_Name
+
+
+--18	Customer Count by State
+--Customer table lacks a join 
+
+--CUSTOMER => CITY => STATE, roll up by state w/ Customer Count
+
+SELECT
+    StateProvinceName AS StateProvince
+  , COUNT(CustomerID) AS [Count]
+FROM Sales.Customers INNER JOIN Application.Cities ON
+	Sales.Customers.PostalCityID = Application.Cities.CityID
+   , Application.StateProvinces AS ASP
+    INNER JOIN Application.Cities AS AC
+        ON ASP.StateProvinceID = AC.StateProvinceID
+GROUP BY StateProvinceName
+
+
+--19	Customer Count by Country 
+--CUSTOMER => CITY => STATE => COUNTRY, roll up by Country w/ Customer Count
+-- Sales.Customers shows 663 records for CustomerID ***DONE***
+
+SELECT
+    COUNT(DISTINCT(CustomerID)) AS [Count]
+  , CountryName AS CountryName
+FROM Sales.Customers LEFT OUTER JOIN Application.Cities ON
+		Sales.Customers.PostalCityID = Application.Cities.CityID
+   , Application.StateProvinces AS ASP
+    INNER JOIN Application.Cities AS AC
+        ON ASP.StateProvinceID = AC.StateProvinceID
+   , Application.Countries AS ACO
+    INNER JOIN Application.StateProvinces
+        ON Application.StateProvinces.CountryID = ACO.CountryID
+GROUP BY CountryName
+
+--20	Number of Customers that have more than 10 orders -- 660 Rows of Customers
+
+SELECT
+    COUNT(OrderID) AS [Count]
+  , CustomerName AS Customer
+FROM Sales.Orders AS SO
+    INNER JOIN Sales.Customers AS SC
+        ON SO.CustomerID = SC.CustomerID
+GROUP BY CustomerName
+HAVING COUNT(OrderID) > 10
+
+--21	Number of customers that have less than 10 orders -- 	Jibek Juniskyzy
+								Anand Mudaliyar
+								Agrita Abele
+
+SELECT
+    COUNT(OrderID) AS [Count]
+  , CustomerName AS Customer
+FROM Sales.Orders AS SO
+    INNER JOIN Sales.Customers AS SC
+        ON SO.CustomerID = SC.CustomerID
+GROUP BY CustomerName
+HAVING COUNT(OrderID) < 10
+ 
+--22	Number of Customers that don't have any orders
+--Needs work, start with Customers, left join orders, and look for records with
+--NULL Customer ID, use DISTINCT Keyword, don't care about counts b/c there are none.  
+SELECT
+    COUNT(OrderID) AS [Count]
+  , CustomerName AS Customer
+FROM Sales.Orders AS SO
+    INNER JOIN Sales.Customers AS SC
+        ON SO.CustomerID = SC.CustomerID
+GROUP BY CustomerName
+HAVING COUNT(OrderID) < 1
+
+/**************************
+23	List the Cities that don't have any sales registered -- 
+	Needs work 
+	CITY => CUSTOMER => ORDERS, using Left Join, where ORDER ID IS NULL, and DISTINCT, 
+		dont' need a count
+***************************/
+SELECT CityName, COUNT(OrderID) AS [Count]
+FROM
+Sales.Customers INNER JOIN Sales.Orders ON
+	Sales.Customers.CustomerID = Sales.Orders.CustomerID
+	INNER JOIN Application.Cities ON 
+	Sales.Customers.DeliveryCityID = Application.Cities.CityID
+
+GROUP BY CityName
+ORDER BY Count
